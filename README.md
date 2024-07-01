@@ -1,2 +1,1 @@
-# CBR DS Tech Task
- CPI Forecasting + Flask
+## CBR DS Tech Task: CPI Forecasting + Flask
