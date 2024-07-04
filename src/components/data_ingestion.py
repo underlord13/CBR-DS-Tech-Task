@@ -19,7 +19,7 @@ class DataIngestion:
 
     def initiate_data_ingestion(self):
         '''
-        Function to read data from source and create directories to store it.
+        Function to read data from source, also creates directories to store it.
         '''
         logging.info("Specified data ingestion method")
         try:
