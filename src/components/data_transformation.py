@@ -37,9 +37,11 @@ class DataTransformation:
             )
             
             preprocessor = ColumnTransformer(
-                [
+                transformers = [
                 ("num_pipeline", num_pipeline, make_column_selector(dtype_include = np.number))
-                ]
+                ],
+                
+                remainder = 'passthrough'
             )
 
             return preprocessor
@@ -53,6 +55,9 @@ class DataTransformation:
             train_df = pd.read_csv(train_path)
             test_df = pd.read_csv(test_path)
             logging.info("Read train and test files")
+
+            train_df.set_index('date', inplace=True)
+            test_df.set_index('date', inplace=True)
 
             preprocessing_obj = self.get_data_transformer_object()
             logging.info("Get preprocessing object")
@@ -72,18 +77,27 @@ class DataTransformation:
             X_train_arr = preprocessing_obj.fit_transform(X_train)
             X_test_arr = preprocessing_obj.transform(X_test)
 
-            train_arr = np.c_[X_train_arr, np.array(y_train)]
-            test_arr = np.c_[X_test_arr, np.array(y_test)]
+            X_train = pd.DataFrame(X_train_arr, columns = numerical_columns, index = y_train.index)
+            X_test = pd.DataFrame(X_test_arr, columns = numerical_columns, index = y_test.index)
 
+            #train = pd.concat([y_train, X_train])
+            #train = train.rename(columns = {0: target_variable})
+
+            #test = pd.concat([y_test, X_test])
+            #test = test.rename(columns = {0: target_variable})
+            
             logging.info(f"Saving preprocessing object")
             save_object(
                 file_path = self.data_transformation_config.preprocessor_obj_file_path,
                 obj = preprocessing_obj 
+ 
             )
 
             return (
-                train_arr,
-                test_arr,
+                X_train,
+                y_train,
+                X_test,
+                y_test,
                 self.data_transformation_config.preprocessor_obj_file_path
             )
         

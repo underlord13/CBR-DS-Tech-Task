@@ -12,6 +12,9 @@ from src.utils import create_lag_features
 
 from src.components.data_transformation import DataTransformation
 from src.components.data_transformation import DataTransformationConfig
+from src.components.model_training import Models
+from src.components.model_training import ModelTrainingConfig
+from src.components.model_training import ModelTraining
 
 @dataclass
 class DataIngestionConfig:
@@ -44,7 +47,6 @@ class DataIngestion:
             train, test = train_test_split(df, test_size = 0.2, shuffle = False)
 
             train.to_csv(self.ingestion_config.train_data_path, header = True)
-
             test.to_csv(self.ingestion_config.test_data_path, header = True)
 
             logging.info("Data ingestion is completed")
@@ -61,4 +63,7 @@ if __name__ == "__main__":
     train_data, test_data = obj.initiate_data_ingestion()
 
     data_transformation = DataTransformation()
-    train_arr, test_arr, _ = data_transformation.initiate_data_transformation(train_data,test_data)
+    X_train, y_train, X_test, y_test, _ = data_transformation.initiate_data_transformation(train_data, test_data)
+
+    model_trainer = ModelTraining()
+    model_trainer.initiate_model_training(X_train, y_train, X_test, y_test)

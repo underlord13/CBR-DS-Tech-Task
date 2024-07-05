@@ -1,1 +1,23 @@
-<h1>Some text to fill the home page.</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Index Page</h1>
+    <img src="{{ url_for('static', filename='plot.png') }}" alt="Description of your picture">
+</body>
+</html>
