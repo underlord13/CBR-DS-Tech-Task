@@ -32,7 +32,8 @@ class DataIngestion:
         '''
         logging.info("Start data ingestion")
         try:
-            df = pd.read_csv("manual_data_download\data.csv", encoding='cp1251')
+            manual_data_path = os.path.join("manual_data_download", "data.csv")
+            df = pd.read_csv(manual_data_path, encoding='cp1251')
             logging.info('Process the dataset as a pandas dataframe')
             
             os.makedirs(os.path.dirname(self.ingestion_config.train_data_path), exist_ok = True)
