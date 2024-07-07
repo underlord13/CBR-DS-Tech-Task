@@ -9,5 +9,3 @@ openpyxl
 matplotlib
 catboost
 xgboost
-selenium
-webdriver_manager
