@@ -5,6 +5,7 @@ numpy==1.21.5
 flask==2.0.3
 werkzeug==2.2.2
 dill
+requests
 openpyxl
 matplotlib
 catboost
