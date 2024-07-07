@@ -2,7 +2,6 @@ import os
 import sys
 import numpy as np 
 import pandas as pd
-from pmdarima import auto_arima
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from catboost import CatBoostRegressor
@@ -47,19 +46,24 @@ class Models:
     def tune_models(self, X_train, y_train):
         param_grids = {
             'RandomForest': {
-                'n_estimators': [8, 16, 32, 64, 128, 256], 
-                'max_depth': [None, 5, 10],
-                'min_samples_split': [2, 5]
+                'random_state': [42],
+                'bootstrap': [True],
+                'criterion': ['mse', 'mae'],
+                'n_estimators': [8, 16, 32],
+                'max_depth': [None, 4, 8],
+                'min_samples_split': [2, 6, 10]
             },
             'CatBoost': {
-                'iterations': [100, 200, 500],
-                'depth': [4, 6, 8, 10],
-                'learning_rate': [0.001, 0.01, 0.1]
+                'loss_function': ['MAPE'],
+                'iterations': [100, 200],
+                'depth': [4, 6, 8],
+                'learning_rate': [0.1]
             },
             'XGBoost': {
-                'n_estimators': [100, 250, 500],
-                'max_depth': [3, 6, 9],
-                'learning_rate': [0.01, 0.1]
+                'n_estimators': [100, 150],
+                'max_depth': [2, 3, 4],
+                'learning_rate': [0.01, 0.1],
+                'reg_alpha': [0, 0.5, 1]
             }
         }
 
@@ -68,7 +72,7 @@ class Models:
         self.best_models['CatBoost'] = self.hyperparameter_tuning(
             CatBoostRegressor(verbose=0), param_grids['CatBoost'], X_train, y_train)
         self.best_models['XGBoost'] = self.hyperparameter_tuning(
-            XGBRegressor(objective='reg:squarederror'), param_grids['XGBoost'], X_train, y_train)
+            XGBRegressor(objective = 'reg:squarederror'), param_grids['XGBoost'], X_train, y_train)
 
     def rf_forecast(self, X_train, y_train, X_test):
         model = self.best_models['RandomForest']
@@ -84,6 +88,21 @@ class Models:
         model = self.best_models['XGBoost']
         predictions = model.predict(X_test)
         return predictions
+
+class ModelWrapper:
+    def __init__(self, model, name):
+        self.model = model
+        self.name = name
+
+    def predict(self, *args):
+        if callable(self.model):
+            return self.model(*args)
+        else:
+            X_test = args[2] if len(args) == 3 else args[0]
+            return self.model.predict(X_test)
+
+    def __call__(self, *args):
+        return self.predict(*args)
 
 @dataclass
 class ModelTrainingConfig:
@@ -119,32 +138,32 @@ class ModelTraining:
             logging.info("Save models as .pkl files")
             save_object(
                 file_path = self.model_trainer_config.trained_model_file_path_mean,
-                obj = models[0][1]
+                obj = ModelWrapper(self.models.mean_forecast, 'mean_forecast')
             )
 
             save_object(
                 file_path = self.model_trainer_config.trained_model_file_path_naive,
-                obj = models[1][1]
+                obj = ModelWrapper(self.models.naive_forecast, 'naive_forecast')
             )
 
             save_object(
                 file_path = self.model_trainer_config.trained_model_file_path_lr,
-                obj = models[2][1]
+                obj = ModelWrapper(self.models.lr_forecast, 'lr_forecast')
             )
 
             save_object(
                 file_path = self.model_trainer_config.trained_model_file_path_rf,
-                obj = models[3][1]
+                obj = ModelWrapper(self.models.best_models['RandomForest'], 'rf_forecast')
             )
 
             save_object(
                 file_path = self.model_trainer_config.trained_model_file_path_catboost,
-                obj = models[4][1]
+                obj = ModelWrapper(self.models.best_models['CatBoost'], 'catboost_forecast')
             )
 
             save_object(
                 file_path = self.model_trainer_config.trained_model_file_path_xgboost,
-                obj = models[5][1]
+                obj = ModelWrapper(self.models.best_models['XGBoost'], 'xgboost_forecast')
             )
 
         except Exception as e:

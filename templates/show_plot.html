@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Show Plot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            background-color: #f0f0f0; /* Add a background color */
+        }
+        img {
+            max-width: 80%;
+            height: auto;
+            margin: 0 auto; /* Center the image horizontally */
+            border: 2px solid #333; /* Add a border to the image */
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Add a shadow to the image */
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px; /* Add some margin for spacing */
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF; /* Blue background color */
+            color: white; /* White text color */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s; /* Smooth transition for background color */
+        }
+        button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+    </style>
+</head>
+<body>
+    <h1>Plot Viewer</h1>
+    <div class="button-container">
+        <button onclick="window.location.href='/'">Back to index page</button>
+    </div>
+    <img id="plot" src="{{ plot_url }}" alt="Plot">
+</body>
+</html>

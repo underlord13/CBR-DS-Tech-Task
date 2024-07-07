@@ -28,7 +28,7 @@ class DataIngestion:
 
     def initiate_data_ingestion(self):
         '''
-        Function to read data from source and split it to train/test. Also creates directories to store the files.
+        Function to read data from source, create lag features and split dataframe to train/test. Also creates directories to store the files and sets date as index.
         '''
         logging.info("Start data ingestion")
         try:
@@ -39,7 +39,7 @@ class DataIngestion:
 
             df.set_index('date', inplace = True)
 
-            create_lag_features(df = df, variable = 'CPI', num_lags = 9)
+            create_lag_features(df = df, variable = 'CPI', num_lags = 4)
             logging.info('Create lag features')
             df.to_csv(self.ingestion_config.raw_data_path, header = True)
             

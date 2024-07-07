@@ -3,21 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index Page</title>
+    <title>Show Plot</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin-top: 50px;
+            background-color: #f0f0f0; /* Add a background color */
+        }
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px; /* Adjust the gap as needed */
+            margin-bottom: 20px;
+        }
+        .date-form-container, .category-form-container{
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            margin-bottom: 20px;
         }
         img {
-            max-width: 100%;
+            max-width: 80%;
             height: auto;
+            display: none; /* Hide the image initially */
+            margin: 0 auto; /* Center the image horizontally */
+            border: 2px solid #333; /* Add a border to the image */
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Add a shadow to the image */
+        }
+        button {
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF; /* Blue background color */
+            color: white; /* White text color */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s; /* Smooth transition for background color */
+        }
+        button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+
+        .timer {
+            font-size: 20px;
+            margin-top: 20px;
+            display: none; /* Hide the timer initially */
+        }
+
+        .results {
+            font-size: 20px;
+            margin-top: 20px;
+            display: none; /* Hide the results initially */
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to the Index Page</h1>
-    <img src="{{ url_for('static', filename='plot.png') }}" alt="Description of your picture">
+    <h1>Welcome to the Plot Viewer</h1>
+    <div class="form-container">
+        <form method="POST" action="/show" onsubmit="return validateDates()">
+            <label for="data_source">Select Data Source:</label>
+            <select name="data_source" id="data_source" onchange="toggleDateForm(); toggleCategoryForm();">
+                <option value="GKS">GKS</option>
+                <option value="Rosstat">Rosstat</option>
+            </select>
+
+            <div class="category-form-container" id="category_form">
+                <label for="cpi_category">Select CPI Category:</label>
+                <select name="cpi_category" id="cpi_category">
+                    <option value="01">All</option>
+                    <option value="02">Food</option>
+                    <option value="03">Non-Food</option>
+                    <option value="04">Utils</option>
+                </select>
+            </div>
+
+            <div class="date-form-container" id="date_form">
+                <label for="start_date">Start Date:</label>
+                <select name="start_date" id="start_date">
+                    {% for date in date_list %}
+                        <option value="{{ date }}">{{ date }}</option>
+                    {% endfor %}
+                </select>
+                <label for="end_date">End Date:</label>
+                <select name="end_date" id="end_date">
+                    {% for date in date_list %}
+                        <option value="{{ date }}">{{ date }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit">Show plot</button>
+        </form>
+        <form method="POST" action="/tune">
+            <input type="hidden" name="data_source" id="tune_data_source">
+            <button type="submit" onclick="setDataSource()">Tune Hyperparameters</button>
+        </form>
+    </div>
+    <button id="backButton" style="display:none;" onclick="window.location.href='/'">Back to index page</button>
+    <div class="timer" id="timer">Time passed: 0s</div>
+    <div class="results" id="results">Tuning completed: </div>
+    <script>
+        function toggleDateForm() {
+            const dataSource = document.getElementById('data_source').value;
+            const dateForm = document.getElementById('date_form');
+            if (dataSource === 'Rosstat') {
+                dateForm.style.display = 'flex';
+            } else {
+                dateForm.style.display = 'none';
+            }
+        }
+
+        function toggleCategoryForm() {
+            const dataSource = document.getElementById('data_source').value;
+            const categoryForm = document.getElementById('category_form');
+            if (dataSource === 'Rosstat') {
+                categoryForm.style.display = 'flex';
+            } else {
+                categoryForm.style.display = 'none';
+            }
+        }
+
+        function setDataSource() {
+            const dataSource = document.getElementById('data_source').value;
+            document.getElementById('tune_data_source').value = dataSource;
+        }
+
+        function validateDates() {
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+            if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+                alert('Start date must be before end date.');
+                return false;
+            }
+            return true;
+        }
+
+        window.onload = function() {
+            // Reset date form on page load
+            document.getElementById('start_date').selectedIndex = 0;
+            document.getElementById('end_date').selectedIndex = 0;
+        };
+
+        document.querySelector('form[action="/show"]').onsubmit = function() {
+            document.querySelector('form[action="/tune"] button').style.display = 'none';
+            document.getElementById('backButton').style.display = 'block';
+        };
+
+        document.querySelector('form[action="/tune"]').onsubmit = function(event) {
+            event.preventDefault();
+            const timer = document.getElementById('timer');
+            const results = document.getElementById('results');
+            timer.style.display = 'block'; // Show the timer when tuning starts
+            results.style.display = 'none'; // Hide results while tuning
+            let seconds = 0;
+            timer.innerText = `Time passed: ${seconds}s`;
+
+            function updateTimer() {
+                seconds += 1;
+                timer.innerText = `Time passed: ${seconds}s`;
+                setTimeout(updateTimer, 1000); // Update every second
+            }
+
+            updateTimer();
+
+            fetch('/tune', {
+                method: 'POST',
+                body: new URLSearchParams(new FormData(event.target))
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearTimeout(updateTimer);
+                timer.style.display = 'none';
+                results.style.display = 'block';
+                results.innerText = `Tuning completed. Results: ${JSON.stringify(data)}`;
+            })
+            .catch(error => {
+                clearTimeout(updateTimer);
+                timer.style.display = 'none';
+                results.style.display = 'block';
+                results.innerText = `Error occurred: ${error}`;
+            });
+        };
+
+        // Show the image if it exists
+        const img = document.getElementById('plot');
+        img.onload = function() {
+            img.style.display = 'block';
+        };
+    </script>
 </body>
 </html>
