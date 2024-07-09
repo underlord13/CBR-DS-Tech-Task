@@ -27,7 +27,8 @@
   
 * `Dockerfile` и `docker-compose.yml`: Docker-файлы для создания образа.
   Создать контейнер на основе образа можно с помощью следующих команд:
-    * ```
+    * 
+    ```
     docker pull lysovandrey/cbr-ds-tech-task-flask:latest
     docker run -d -p 5000:5000 --name my-container lysovandrey/cbr-ds-tech-task-flask:latest
     ```
